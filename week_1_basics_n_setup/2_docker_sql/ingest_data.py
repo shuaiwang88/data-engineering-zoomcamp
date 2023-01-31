@@ -13,27 +13,24 @@ from sqlalchemy import create_engine
 def main(params):
     user = params.user
     password = params.password
-    host = params.host 
-    port = params.port 
+    host = params.host
+    port = params.port
     db = params.db
     table_name = params.table_name
     url = params.url
-    
+
     # the backup files are gzipped, and it's important to keep the correct extension
     # for pandas to be able to open the file
-    if url.endswith('.csv.gz'):
-        csv_name = 'output.csv.gz'
-    else:
-        csv_name = 'output.csv'
+    csv_name = 'output.csv.gz' if url.endswith('.csv.gz') else 'output.parquet'
+    os.system(f"curl {url} -o {csv_name}")
 
-    os.system(f"wget {url} -O {csv_name}")
 
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
 
-    df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000)
+    df_iter = pd.read_parquet(csv_name)
 
-    df = next(df_iter)
-
+    # df = next(df_iter)
+    df = df_iter
     df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
     df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
 
@@ -42,25 +39,26 @@ def main(params):
     df.to_sql(name=table_name, con=engine, if_exists='append')
 
 
-    while True: 
+    # while True: 
 
-        try:
-            t_start = time()
-            
-            df = next(df_iter)
+        # try:
+    t_start = time()
 
-            df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
-            df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
+    # df = next(df_iter)
 
-            df.to_sql(name=table_name, con=engine, if_exists='append')
+    df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
+    df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
 
-            t_end = time()
+    df.to_sql(name=table_name, con=engine,
+              if_exists='append', chunksize=100000)
 
-            print('inserted another chunk, took %.3f second' % (t_end - t_start))
+    t_end = time()
 
-        except StopIteration:
-            print("Finished ingesting data into the postgres database")
-            break
+    print('inserted another chunk, took %.3f second' % (t_end - t_start))
+
+        # except StopIteration:
+        #     print("Finished ingesting data into the postgres database")
+        #     break
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Ingest CSV data to Postgres')
