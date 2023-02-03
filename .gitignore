@@ -15,4 +15,4 @@ serving_dir
 *.csv
 .ipynb_checkpoints/
 !week_6_stream_processing/avro_example/data/rides.csv
-/week_1_basics_n_setup/1_terraform_gcp/my-project-de-376601-548af0176340.json
+week_1_basics_n_setup/1_terraform_gcp/my-project-de-376601-548af0176340.json
