@@ -1,5 +1,5 @@
 ## Local Setup for Terraform and GCP
-
+**[Great Summary](https://dev.to/cemkeskin84/building-gcs-bucket-and-bigquery-tables-with-terraform-4hf4)**
 ### Pre-Requisites
 1. Terraform client installation: https://www.terraform.io/downloads
 2. Cloud Provider account: https://console.cloud.google.com/ 
